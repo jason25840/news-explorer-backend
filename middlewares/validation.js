@@ -1,8 +1,7 @@
-const { Joi, celebrate } = require('celebrate');
+const { Joi, celebrate, Segments } = require('celebrate');
 
-// Validation schema for signup
 const signupValidation = celebrate({
-  body: Joi.object().keys({
+  [Segments.BODY]: Joi.object().keys({
     email: Joi.string().email().required().messages({
       'string.email': 'Invalid email format',
       'string.empty': 'Email is required',
@@ -19,9 +18,8 @@ const signupValidation = celebrate({
   }),
 });
 
-// Validation schema for login
 const loginValidation = celebrate({
-  body: Joi.object().keys({
+  [Segments.BODY]: Joi.object().keys({
     email: Joi.string().email().required().messages({
       'string.email': 'Invalid email format',
       'string.empty': 'Email is required',

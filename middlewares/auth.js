@@ -1,23 +1,29 @@
-const auth = (req, res, next) => {
-  const token = req.headers.authorization
-    ? req.headers.authorization.replace("Bearer ", "")
-    : null;
+const jwt = require('jsonwebtoken');
+const UnauthorizedError = require('../utils/unauthorizedError');
+const { JWT_SECRET } = process.env;
 
-  if (!token) {
-    return next(new UnauthorizedError("No token provided"));
+const auth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next(new UnauthorizedError('No token provided'));
   }
 
-  let payload;
+  const token = authHeader.replace('Bearer ', '');
 
   try {
-    payload = jwt.verify(token, JWT_SECRET); // Verifies token validity
+    const payload = jwt.verify(token, JWT_SECRET);
+
+    if (!payload._id) {
+      return next(new UnauthorizedError('Invalid token payload'));
+    }
+
+    req.user = { _id: payload._id };
+    next();
   } catch (err) {
-    return next(new UnauthorizedError("Invalid token provided"));
+    next(new UnauthorizedError('Invalid token provided'));
   }
-
-  req.user = payload;  // Attach payload to request object
-
-  return next();  // Proceed to the next middleware/route
 };
+
 
 module.exports = auth;

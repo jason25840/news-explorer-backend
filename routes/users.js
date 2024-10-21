@@ -1,13 +1,14 @@
 const express = require('express');
 const { signupValidation, loginValidation } = require('../middlewares/validation');
-const { createUser, loginUser } = require('../controllers/users');
+const { createUser, loginUser, getCurrentUser } = require('../controllers/users');
+const auth = require('../middlewares/auth');
 
 const router = express.Router();
 
-// User signup route with validation
 router.post('/signup', signupValidation, createUser);
 
-// User login route with validation
 router.post('/login', loginValidation, loginUser);
+
+router.get('/users/me', auth, getCurrentUser);
 
 module.exports = router;
