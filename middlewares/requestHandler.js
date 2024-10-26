@@ -1,4 +1,4 @@
-const { requestLogger } = require('./logger.js');
+const { requestLogger } = require('./logger');
 
 const logRequests = (req, res, next) => {
   requestLogger.info({

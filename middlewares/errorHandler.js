@@ -1,5 +1,5 @@
 const { isCelebrateError } = require('celebrate');
-const { errorLogger } = require('../logger');
+const { errorLogger } = require('./logger');
 
 const logErrors = (err, req, res, next) => {
   if (isCelebrateError(err)) {

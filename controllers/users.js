@@ -1,7 +1,12 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { JWT_SECRET } = process.env; // Ensure this is defined in your .env
+const { JWT_SECRET } = process.env;
+
+const { NotFoundError } = require('../utils/notFoundError');
+const { ConflictError } = require('../utils/conflictError');
+const InternalServerError = require('../utils/internalServerError');
+const { UnauthorizedError } = require('../utils/unauthorizedError');
 
 const createUser = async (req, res, next) => {
   const { email, password, name } = req.body;
@@ -11,9 +16,9 @@ const createUser = async (req, res, next) => {
     res.status(201).send({ message: 'User created successfully', user });
   } catch (error) {
     if (error.code === 11000) {
-      res.status(409).send({ message: 'Email already exists' });
+      next(new conflictError('Email already exists'));
     } else {
-      next(error);
+      next(new internalServerError('An error occurred while creating the user'));
     }
   }
 };
@@ -23,16 +28,16 @@ const loginUser = async (req, res, next) => {
   try {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return res.status(401).send({ message: 'Invalid email or password' });
+      return next(new UnauthorizedError('Invalid email or password'));
     }
     const matched = await bcrypt.compare(password, user.password);
     if (!matched) {
-      return res.status(401).send({ message: 'Invalid email or password' });
+      return next(new UnauthorizedError('Invalid email or password'));
     }
     const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
     res.send({ token });
   } catch (error) {
-    next(error);
+    next(new InternalServerError('An error occurred during login'));
   }
 };
 
@@ -40,12 +45,16 @@ const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
     if (!user) {
-      return res.status(404).send({ message: 'User not found' });
+      return next(new NOT_FOUND('User not found'));
     }
     res.send(user);
   } catch (error) {
-    next(error);
+    next(new InternalServerError('An error occurred while fetching user data'));
   }
+}
+
+const removeCurrentuser = (req, res) => {
+  res.status(204).send();
 };
 
-module.exports = { createUser, loginUser, getCurrentUser };
+module.exports = { createUser, loginUser, getCurrentUser, removeCurrentuser };
