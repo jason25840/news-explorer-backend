@@ -1,14 +1,11 @@
 const Article = require('../models/article');
-const { BadRequestError } = require('../utils/badRequestError');
-const { NotFoundError } = require('../utils/notFoundError');
+const BadRequestError = require('../utils/badRequestError');
+const NotFoundError = require('../utils/notFoundError');
 const { ForbiddenError } = require('../utils/forbiddenError');
 
 const getArticles = async (req, res, next) => {
   try {
     const articles = await Article.find({ owner: req.user._id });
-    if (!articles || articles.length === 0) {
-      throw new NotFoundError('No articles found for this user');
-    }
     res.status(200).send(articles);
   } catch (error) {
     if (error.name === 'CastError') {
@@ -21,6 +18,7 @@ const getArticles = async (req, res, next) => {
 
 const saveArticle = async (req, res, next) => {
   const { keyword, title, text, date, source, link, image } = req.body;
+  console.log('Saving article with source:', source);
   try {
     const article = await Article.create({
       keyword,
@@ -43,9 +41,9 @@ const saveArticle = async (req, res, next) => {
 };
 
 const deleteArticle = async (req, res, next) => {
+
   try {
     const article = await Article.findById(req.params.articleId);
-
     if (!article) {
       throw new NotFoundError('Article not found');
     }
@@ -53,8 +51,7 @@ const deleteArticle = async (req, res, next) => {
     if (article.owner.toString() !== req.user._id.toString()) {
       throw new ForbiddenError('You are not authorized to delete this article');
     }
-
-    await Article.findByIdAndRemove(req.params.articleId);
+    await Article.findByIdAndDelete(req.params.articleId);
     res.status(200).send({ message: 'Article deleted successfully' });
   } catch (error) {
     if (error.name === 'CastError') {
