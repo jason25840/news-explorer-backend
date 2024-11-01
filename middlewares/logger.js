@@ -22,4 +22,13 @@ const errorLogger = createLogger({
   ],
 });
 
-module.exports = { requestLogger, errorLogger };
+const infoLogger = createLogger({
+  level: 'info',
+  format: logFormat,
+  transports: [
+    new transports.Console(),
+    new transports.File({ filename: path.join(__dirname, '../logs/info.log') }),
+  ],
+});
+
+module.exports = { requestLogger, errorLogger, infoLogger };

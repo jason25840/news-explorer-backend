@@ -3,38 +3,47 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const { errors } = require('celebrate');
+const helmet = require('helmet');
+const config = require('./config');
 
 const logRequests = require('./middlewares/requestHandler');
-const logErrors = require('./middlewares/errorHandler');
+const errorHandler = require('./middlewares/errorHandler');
+const logErrors = require('./middlewares/logErrors');
+const rateLimiter = require('./middlewares/rateLimiter');
+const { infoLogger } = require('./middlewares/logger');
 
-const userRoutes = require('./routes/users');
-const articleRoutes = require('./routes/articles');
+const routes = require('./routes');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = config.port || 3001;
 
+app.use(helmet());
 app.use(cors());
-
 app.use(express.json());
-
 app.use(logRequests);
+app.use(rateLimiter);
 
 mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log('Connected to MongoDB'))
+  .connect(config.mongoURI)
+  .then(() => infoLogger.info('Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-app.use('/api', userRoutes);
-app.use('/api/articles', articleRoutes);
+app.use('/api', routes);
 
-app.use(errors());
+app.use((req, res) => {
+  res.status(404).json({
+    message: 'Resource not found',
+  });
+});
 
 app.get('/', (req, res) => {
   res.send('Welcome to the News Explorer Backend');
 });
 
+app.use(errors());
 app.use(logErrors);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.error(`Server is running on http://localhost:${PORT}`);
 });

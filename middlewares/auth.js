@@ -1,29 +1,27 @@
 const jwt = require('jsonwebtoken');
+const constants = require('../utils/constants');
 const UnauthorizedError = require('../utils/unauthorizedError');
-const { JWT_SECRET } = process.env;
+const { jwtSecret } = require('../config');
 
 const auth = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(new UnauthorizedError('No token provided'));
+    return next(new UnauthorizedError(constants.NO_TOKEN_PROVIDED));
   }
 
   const token = authHeader.replace('Bearer ', '');
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
-
+    const payload = jwt.verify(token, jwtSecret);
     if (!payload._id) {
-      return next(new UnauthorizedError('Invalid token payload'));
+      return next(new UnauthorizedError(constants.INVALID_TOKEN_PAYLOAD));
     }
-
     req.user = { _id: payload._id };
-    next();
+    return next();
   } catch (err) {
-    next(new UnauthorizedError('Invalid token provided'));
+    return next(new UnauthorizedError(constants.AUTHORIZATION_REQUIRED));
   }
 };
-
 
 module.exports = auth;

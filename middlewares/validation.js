@@ -34,18 +34,47 @@ const loginValidation = celebrate({
       .email()
       .required()
       .messages({
-        'string.email': 'Invalid email format',  // Custom message for invalid format
-        'any.required': 'Email is required',      // Custom message for missing value
+        'string.email': 'Invalid email format',
+        'any.required': 'Email is required',
       }),
     password: Joi.string()
       .required()
       .messages({
-        'any.required': 'Password is required',  // Custom message for missing password
+        'any.required': 'Password is required',
       }),
+  }),
+});
+
+const articleValidation = celebrate({
+  [Segments.BODY]: Joi.object().keys({
+    keyword: Joi.string().required().messages({
+      'any.required': 'Keyword is required',
+    }),
+    title: Joi.string().required().messages({
+      'any.required': 'Title is required',
+    }),
+    text: Joi.string().required().messages({
+      'any.required': 'Text is required',
+    }),
+    date: Joi.string().required().messages({
+      'any.required': 'Date is required',
+    }),
+    source: Joi.string().required().messages({
+      'any.required': 'Source is required',
+    }),
+    link: Joi.string().uri().required().messages({
+      'string.uri': 'Link must be a valid URL',
+      'any.required': 'Link is required',
+    }),
+    image: Joi.string().uri().required().messages({
+      'string.uri': 'Image must be a valid URL',
+      'any.required': 'Image is required',
+    }),
   }),
 });
 
 module.exports = {
   signupValidation,
   loginValidation,
+  articleValidation, // Export article validation
 };

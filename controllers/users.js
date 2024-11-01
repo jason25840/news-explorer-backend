@@ -1,25 +1,28 @@
-const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { JWT_SECRET } = process.env;
+const { jwtSecret } = require('../config');
+const User = require('../models/user');
+const constants = require('../utils/constants');
 
-const { NotFoundError } = require('../utils/notFoundError');
-const { ConflictError } = require('../utils/conflictError');
 const InternalServerError = require('../utils/internalServerError');
-const { UnauthorizedError } = require('../utils/unauthorizedError');
+const UnauthorizedError = require('../utils/unauthorizedError');
+const NotFoundError = require('../utils/notFoundError');
+const ConflictError = require('../utils/conflictError');
 
 const createUser = async (req, res, next) => {
   const { email, password, name } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({ email, password: hashedPassword, name });
-    res.status(201).send({ message: 'User created successfully', user });
+
+    const { password: _, ...userWithoutPassword } = user.toObject();
+
+    return res.status(201).send({ message: constants.USER_CREATED_SUCCESS, user: userWithoutPassword });
   } catch (error) {
     if (error.code === 11000) {
-      next(new conflictError('Email already exists'));
-    } else {
-      next(new internalServerError('An error occurred while creating the user'));
+      return next(new ConflictError(constants.EMAIL_ALREADY_EXISTS));
     }
+    return next(new InternalServerError(constants.INTERNAL_USER_CREATE_ERROR));
   }
 };
 
@@ -28,16 +31,16 @@ const loginUser = async (req, res, next) => {
   try {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return next(new UnauthorizedError('Invalid email or password'));
+      return next(new UnauthorizedError(constants.INVALID_LOGIN_CREDENTIALS));
     }
     const matched = await bcrypt.compare(password, user.password);
     if (!matched) {
-      return next(new UnauthorizedError('Invalid email or password'));
+      return next(new UnauthorizedError(constants.INVALID_LOGIN_CREDENTIALS));
     }
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
-    res.send({ token });
+    const token = jwt.sign({ _id: user._id }, jwtSecret, { expiresIn: '7d' });
+    return res.send({ token });
   } catch (error) {
-    next(new InternalServerError('An error occurred during login'));
+    return next(new InternalServerError(constants.LOGIN_INTERNAL_ERROR));
   }
 };
 
@@ -45,16 +48,14 @@ const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
     if (!user) {
-      return next(new NOT_FOUND('User not found'));
+      return next(new NotFoundError(constants.USER_NOT_FOUND));
     }
-    res.send(user);
+    return res.send(user);
   } catch (error) {
-    next(new InternalServerError('An error occurred while fetching user data'));
+    return next(new InternalServerError(constants.USER_DATA_FETCH_ERROR));
   }
 }
 
-const removeCurrentuser = (req, res) => {
-  res.status(204).send();
-};
+const removeCurrentuser = (res) => res.status(204).send();
 
 module.exports = { createUser, loginUser, getCurrentUser, removeCurrentuser };

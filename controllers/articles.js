@@ -1,24 +1,23 @@
 const Article = require('../models/article');
 const BadRequestError = require('../utils/badRequestError');
 const NotFoundError = require('../utils/notFoundError');
-const { ForbiddenError } = require('../utils/forbiddenError');
+const ForbiddenError = require('../utils/forbiddenError');
+const constants = require('../utils/constants');
 
 const getArticles = async (req, res, next) => {
   try {
     const articles = await Article.find({ owner: req.user._id });
-    res.status(200).send(articles);
+    return res.status(200).send(articles);
   } catch (error) {
     if (error.name === 'CastError') {
-      next(new BadRequestError('Invalid user ID'));
-    } else {
-      next(error);
+      return next(new BadRequestError(constants.INVALID_USER_ID));
     }
+      return next(error);
   }
 };
 
 const saveArticle = async (req, res, next) => {
   const { keyword, title, text, date, source, link, image } = req.body;
-  console.log('Saving article with source:', source);
   try {
     const article = await Article.create({
       keyword,
@@ -30,35 +29,32 @@ const saveArticle = async (req, res, next) => {
       urlToImage: image,
       owner: req.user._id,
     });
-    res.status(201).send(article);
+    return res.status(201).send(article);
   } catch (error) {
     if (error.name === 'ValidationError') {
-      next(new BadRequestError('Invalid article data'));
-    } else {
-      next(error);
+      return next(new BadRequestError(constants.INVALID_ARTICLE_DATA));
     }
+      return next(error);
   }
 };
 
 const deleteArticle = async (req, res, next) => {
-
   try {
     const article = await Article.findById(req.params.articleId);
     if (!article) {
-      throw new NotFoundError('Article not found');
+      throw new NotFoundError(constants.ARTICLE_NOT_FOUND);
     }
 
     if (article.owner.toString() !== req.user._id.toString()) {
-      throw new ForbiddenError('You are not authorized to delete this article');
+      throw new ForbiddenError(constants.UNAUTHORIZED_ARTICLE_DELETE);
     }
     await Article.findByIdAndDelete(req.params.articleId);
-    res.status(200).send({ message: 'Article deleted successfully' });
+    return res.status(200).send({ message: constants.ARTICLE_DELETE_SUCCESS });
   } catch (error) {
     if (error.name === 'CastError') {
-      next(new BadRequestError('Invalid article ID'));
-    } else {
-      next(error);
+      return next(new BadRequestError(constants.INVALID_ARTICLE_DATA));
     }
+      return next(error);
   }
 };
 
