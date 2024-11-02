@@ -6,11 +6,10 @@ const { errors } = require('celebrate');
 const helmet = require('helmet');
 const config = require('./config');
 
-const logRequests = require('./middlewares/requestHandler');
 const errorHandler = require('./middlewares/errorHandler');
 const logErrors = require('./middlewares/logErrors');
 const rateLimiter = require('./middlewares/rateLimiter');
-const { infoLogger } = require('./middlewares/logger');
+const { infoLogger, requestLogger } = require('./middlewares/logger');
 
 const routes = require('./routes');
 
@@ -20,7 +19,7 @@ const PORT = config.port || 3001;
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-app.use(logRequests);
+app.use(requestLogger);
 app.use(rateLimiter);
 
 mongoose.connect(config.mongoURI, {
