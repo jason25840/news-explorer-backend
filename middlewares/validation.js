@@ -62,13 +62,23 @@ const articleValidation = celebrate({
     source: Joi.string().required().messages({
       'any.required': 'Source is required',
     }),
-    link: Joi.string().uri().required().messages({
-      'string.uri': 'Link must be a valid URL',
-      'any.required': 'Link is required',
+    url: Joi.string().uri().required().messages({
+      'string.uri': 'URL must be valid',
+      'any.required': 'URL is required',
     }),
-    image: Joi.string().uri().required().messages({
-      'string.uri': 'Image must be a valid URL',
-      'any.required': 'Image is required',
+    urlToImage: Joi.string().uri().required().messages({
+      'string.uri': 'Image URL must be valid',
+      'any.required': 'Image URL is required',
+    }),
+  }),
+});
+
+const articleIdValidation = celebrate({
+  [Segments.PARAMS]: Joi.object().keys({
+    articleId: Joi.string().hex().length(24).required().messages({
+      'string.length': 'Article ID must be 24 characters long',
+      'string.hex': 'Article ID must be a valid hex string',
+      'any.required': 'Article ID is required',
     }),
   }),
 });
@@ -76,5 +86,6 @@ const articleValidation = celebrate({
 module.exports = {
   signupValidation,
   loginValidation,
-  articleValidation, // Export article validation
+  articleValidation,
+  articleIdValidation,
 };

@@ -23,18 +23,14 @@ app.use(express.json());
 app.use(logRequests);
 app.use(rateLimiter);
 
-mongoose
-  .connect(config.mongoURI)
-  .then(() => infoLogger.info('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+mongoose.connect(config.mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => infoLogger.info(`Connected to MongoDB (${process.env.NODE_ENV || 'development'})`))
+  .catch((err) => infoLogger.error(`MongoDB connection error (${process.env.NODE_ENV || 'development'}):`, err));
 
-app.use('/api', routes);
-
-app.use((req, res) => {
-  res.status(404).json({
-    message: 'Resource not found',
-  });
-});
+app.use(routes);
 
 app.get('/', (req, res) => {
   res.send('Welcome to the News Explorer Backend');
