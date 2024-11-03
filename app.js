@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const corsOptions = require('./middlewares/corsConfig');
 const { errors } = require('celebrate');
 const helmet = require('helmet');
 const config = require('./config');
@@ -17,7 +18,7 @@ const app = express();
 const PORT = config.port || 3001;
 
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(requestLogger);
 app.use(rateLimiter);
@@ -29,7 +30,7 @@ mongoose.connect(config.mongoURI, {
   .then(() => infoLogger.info(`Connected to MongoDB (${process.env.NODE_ENV || 'development'})`))
   .catch((err) => infoLogger.error(`MongoDB connection error (${process.env.NODE_ENV || 'development'}):`, err));
 
-app.use(routes);
+app.use('/api', routes);
 
 app.get('/', (req, res) => {
   res.send('Welcome to the News Explorer Backend');
