@@ -24,7 +24,7 @@ const articleSchema = new Schema({
     type: String,
     required: true
   },
-  url: {
+  link: {
     type: String,
     required: true,
     validate: {
@@ -32,7 +32,7 @@ const articleSchema = new Schema({
       message: 'Invalid URL',
     },
   },
-  urlToImage: {
+  image: {
     type: String,
     required: true,
     validate: {

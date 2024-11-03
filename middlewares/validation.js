@@ -62,11 +62,11 @@ const articleValidation = celebrate({
     source: Joi.string().required().messages({
       'any.required': 'Source is required',
     }),
-    url: Joi.string().uri().required().messages({
+    link: Joi.string().uri().required().messages({
       'string.uri': 'URL must be valid',
       'any.required': 'URL is required',
     }),
-    urlToImage: Joi.string().uri().required().messages({
+    image: Joi.string().uri().required().messages({
       'string.uri': 'Image URL must be valid',
       'any.required': 'Image URL is required',
     }),

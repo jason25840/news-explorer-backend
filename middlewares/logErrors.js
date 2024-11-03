@@ -14,15 +14,8 @@ const logErrors = (err, req, res, next) => {
       method: req.method,
       body: req.body,
     });
-  } else {
-    errorLogger.error({
-      message: err.message || 'Internal Server Error',
-      stack: err.stack,
-      url: req.originalUrl,
-      method: req.method,
-      body: req.body,
-    });
   }
+
   next(err);
 };
 
