@@ -9,7 +9,7 @@ const config = require('./config');
 const errorHandler = require('./middlewares/errorHandler');
 const logErrors = require('./middlewares/logErrors');
 const rateLimiter = require('./middlewares/rateLimiter');
-const { requestLogger, errorLogger } = require('./middlewares/logger');
+const { requestLogger } = require('./middlewares/logger');
 
 const routes = require('./routes');
 
@@ -37,7 +37,6 @@ app.get('/', (req, res) => {
 
 app.use(errors());
 app.use(logErrors);
-app.use(errorLogger);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
