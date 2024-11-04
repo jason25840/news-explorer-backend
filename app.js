@@ -10,7 +10,7 @@ const config = require('./config');
 const errorHandler = require('./middlewares/errorHandler');
 const logErrors = require('./middlewares/logErrors');
 const rateLimiter = require('./middlewares/rateLimiter');
-const { requestLogger } = require('./middlewares/logger');
+const { requestLogger, infoLogger } = require('./middlewares/logger');
 
 const routes = require('./routes');
 
@@ -23,10 +23,7 @@ app.use(express.json());
 app.use(requestLogger);
 app.use(rateLimiter);
 
-mongoose.connect(config.mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(config.mongoURI)
   .then(() => infoLogger.info(`Connected to MongoDB (${process.env.NODE_ENV || 'development'})`))
   .catch((err) => infoLogger.error(`MongoDB connection error (${process.env.NODE_ENV || 'development'}):`, err));
 

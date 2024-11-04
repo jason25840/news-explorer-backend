@@ -25,8 +25,8 @@ const saveArticle = async (req, res, next) => {
       text,
       date,
       source,
-      url: link,
-      urlToImage: image,
+      link,
+      image,
       owner: req.user._id,
     });
     return res.status(201).send(article);
