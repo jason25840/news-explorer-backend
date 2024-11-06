@@ -1,13 +1,13 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { jwtSecret } = require('../config');
-const User = require('../models/user');
-const constants = require('../utils/constants');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { jwtSecret } = require("../config");
+const User = require("../models/user");
+const constants = require("../utils/constants");
 
-const InternalServerError = require('../utils/internalServerError');
-const UnauthorizedError = require('../utils/unauthorizedError');
-const NotFoundError = require('../utils/notFoundError');
-const ConflictError = require('../utils/conflictError');
+const InternalServerError = require("../utils/internalServerError");
+const UnauthorizedError = require("../utils/unauthorizedError");
+const NotFoundError = require("../utils/notFoundError");
+const ConflictError = require("../utils/conflictError");
 
 const createUser = async (req, res, next) => {
   const { email, password, name } = req.body;
@@ -17,7 +17,10 @@ const createUser = async (req, res, next) => {
 
     const { password: _, ...userWithoutPassword } = user.toObject();
 
-    return res.status(201).send({ message: constants.USER_CREATED_SUCCESS, user: userWithoutPassword });
+    return res.status(201).send({
+      message: constants.USER_CREATED_SUCCESS,
+      user: userWithoutPassword,
+    });
   } catch (error) {
     if (error.code === 11000) {
       return next(new ConflictError(constants.EMAIL_ALREADY_EXISTS));
@@ -29,7 +32,7 @@ const createUser = async (req, res, next) => {
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return next(new UnauthorizedError(constants.INVALID_LOGIN_CREDENTIALS));
     }
@@ -37,7 +40,7 @@ const loginUser = async (req, res, next) => {
     if (!matched) {
       return next(new UnauthorizedError(constants.INVALID_LOGIN_CREDENTIALS));
     }
-    const token = jwt.sign({ _id: user._id }, jwtSecret, { expiresIn: '7d' });
+    const token = jwt.sign({ _id: user._id }, jwtSecret, { expiresIn: "7d" });
     return res.send({ token });
   } catch (error) {
     return next(new InternalServerError(constants.LOGIN_INTERNAL_ERROR));
@@ -46,7 +49,7 @@ const loginUser = async (req, res, next) => {
 
 const getCurrentUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await User.findById(req.user._id).select("-password");
     if (!user) {
       return next(new NotFoundError(constants.USER_NOT_FOUND));
     }
@@ -54,8 +57,14 @@ const getCurrentUser = async (req, res, next) => {
   } catch (error) {
     return next(new InternalServerError(constants.USER_DATA_FETCH_ERROR));
   }
-}
+};
 
-const removeCurrentuser = (res) => res.status(204).send();
+const removeCurrentUser = (req, res) => {
+  if (!req.user) {
+    return res.status(400).json({ message: "No user to log out" });
+  }
 
-module.exports = { createUser, loginUser, getCurrentUser, removeCurrentuser };
+  res.status(204).send();
+};
+
+module.exports = { createUser, loginUser, getCurrentUser, removeCurrentUser };
